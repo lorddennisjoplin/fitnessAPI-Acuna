@@ -37,6 +37,16 @@ module.exports.getMyWorkouts = (req, res) => {
         .catch(error => errorHandler(error, req, res));
 };
 
+
+module.exports.getSpecificWorkout = (req, res) => {
+    return Workout.findById(req.params.workoutId)
+        .then(user => {
+            if (!user) return res.status(404).json({ message: "Workout not found" });
+            return res.status(200).json(workout);
+        })
+        .catch(error => errorHandler(error, req, res));
+};
+
 module.exports.updateWorkout = (req, res) => {
 
     const updatedWorkout = {
