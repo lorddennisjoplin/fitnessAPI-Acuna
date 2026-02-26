@@ -40,9 +40,9 @@ module.exports.getMyWorkouts = (req, res) => {
 
 module.exports.getSpecificWorkout = (req, res) => {
     return Workout.findById(req.params.workoutId)
-        .then(user => {
-            if (!user) return res.status(404).json({ message: "Workout not found" });
-            return res.status(200).json(workout);
+        .then(workout => {
+            if (!workout) return res.status(404).json({ message: "Workout not found" });
+            return res.status(200).json(workout); // return directly
         })
         .catch(error => errorHandler(error, req, res));
 };
