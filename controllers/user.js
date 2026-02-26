@@ -10,7 +10,7 @@ module.exports.registerUser = async (req, res) => {
         if (!req.body.email.includes("@")) {
             return res.status(400).json({
                 success: false,
-                message: "Invalid email format"
+                message: "Invalid email format."
             });
         }
 
@@ -18,7 +18,7 @@ module.exports.registerUser = async (req, res) => {
         if (req.body.password.length < 8) {
             return res.status(400).json({
                 success: false,
-                message: "Password must be at least 8 characters"
+                message: "Password must be at least 8 characters."
             });
         }
 
@@ -27,7 +27,7 @@ module.exports.registerUser = async (req, res) => {
         if (existingUser) {
             return res.status(409).json({
                 success: false,
-                message: "Email already exists"
+                message: "Email already exists."
             });
         }
 
@@ -39,7 +39,7 @@ module.exports.registerUser = async (req, res) => {
 
         const savedUser = await newUser.save();
         return res.status(201).json({
-            message: "Registered successfully",
+            message: "Registered successfully.",
             userId: savedUser._id
         });
 
@@ -80,7 +80,7 @@ module.exports.getProfile = (req, res) => {
     return User.findById(req.user.id)
         .select("-password")   // exclude password
         .then(user => {
-            if (!user) return res.status(404).json({ message: "User not found" });
+            if (!user) return res.status(404).json({ message: "User not found." });
             return res.status(200).json({ user });
         })
         .catch(error => errorHandler(error, req, res));
