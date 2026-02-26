@@ -1,35 +1,45 @@
+require('dotenv').config(); // Load .env variables
+
 const express = require("express");
 const mongoose = require("mongoose");
-
 const cors = require("cors");
-
-const port = 4000;
 
 const app = express();
 
+// Middleware
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
-
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-//MongoDB database
-mongoose.connect("mongodb+srv://admin:admin1234@acunadb.fww57qg.mongodb.net/fitness_tracker?appName=AcunaDB");
+// MongoDB database
+const mongoURI = process.env.MONGO_URI;
 
-mongoose.connection.once('open', () => console.log('Now connected to MongoDB Atlas.'));
+if (mongoURI) {
+    mongoose.connect(mongoURI)
+        .then(() => console.log('Now connected to MongoDB Atlas.'))
+        .catch(err => console.error('MongoDB connection error:', err));
+} else {
+    console.warn("MONGO_URI not set in environment variables. Skipping DB connection.");
+}
 
-
-//Routes Middleware
+// Routes Middleware
 const userRoutes = require("./routes/user");
 const workoutRoutes = require("./routes/workout");
 
 app.use("/users", userRoutes);
 app.use("/workouts", workoutRoutes);
 
+// Optional: Root route to help test deployment / Boodle
+app.get("/", (req, res) => {
+    res.status(200).json({ message: "API is working" });
+});
 
+// Start server
+const port = process.env.PORT || 4000;
 if (require.main === module) {
-    app.listen(process.env.PORT || 4000, () => {
-        console.log(`API is now online on port ${process.env.PORT || 4000}`);
+    app.listen(port, () => {
+        console.log(`API is now online on port ${port}`);
     });
 }
 
-module.exports = {app,mongoose};
+module.exports = app;
