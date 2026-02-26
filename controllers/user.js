@@ -5,7 +5,7 @@ const auth = require('../auth.js');
 const { errorHandler } = require('../auth');
 
 module.exports.registerUser = (req, res) => {
-
+    // Validate email
     if (!req.body.email.includes("@")) {
         return res.status(400).json({
             success: false,
@@ -13,27 +13,38 @@ module.exports.registerUser = (req, res) => {
         });
     }
 
-    else if (req.body.password.length < 8) {
+    // Validate password length
+    if (req.body.password.length < 8) {
         return res.status(400).json({
             success: false,
             message: "Password must be at least 8 characters"
         });
     }
 
-    else {
-        let newUser = new User({
-            email: req.body.email,
-            password: bcrypt.hashSync(req.body.password, 10)
-        });
+    // Create new user
+    let newUser = new User({
+        email: req.body.email,
+        password: bcrypt.hashSync(req.body.password, 10)
+    });
 
-        return newUser.save()
-        .then((result) => {
+    newUser.save()
+        .then(result => {
             return res.status(201).json({
                 message: "Registered successfully",
             });
         })
-        .catch(error => errorHandler(error, req, res));
-    }
+        .catch(error => {
+            // Handle duplicate email error
+            if (error.code === 11000 && error.keyValue?.email) {
+                return res.status(409).json({
+                    success: false,
+                    message: "Email already exists"
+                });
+            }
+
+            // Fallback for other errors
+            return errorHandler(error, req, res);
+        });
 };
 
 module.exports.loginUser = (req, res) => {
