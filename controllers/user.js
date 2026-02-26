@@ -50,30 +50,33 @@ module.exports.registerUser = async (req, res) => {
 
 module.exports.loginUser = (req, res) => {
 
-    if(req.body.email.includes("@")){
+    const { email, password } = req.body;
 
-       return User.findOne({ email : req.body.email })
-        .then(result => {
-            if(result == null){
-                // Send status 404
-                return res.status(404).send(false);
-            } else {
-                const isPasswordCorrect = bcrypt.compareSync(req.body.password, result.password);
-                if (isPasswordCorrect) {
-
-                    //Send status 200
-                    return res.status(200).send({ access : auth.createAccessToken(result)})
-                } else {
-
-                    //Send status 401
-                    return res.status(401).send(false);
-                }
-            }
-        })
-        .catch(error => errorHandler(error, req, res)); 
-    } else {
-        return res.status(400).send(false)
+    if (!email.includes("@")) {
+        return res.status(400).send({ success: false, message: "Invalid email format." });
     }
+
+    User.findOne({ email })
+        .then(user => {
+            if (!user) {
+                // Email not found
+                return res.status(404).send({ success: false, message: "Email does not exist." });
+            }
+
+            const isPasswordCorrect = bcrypt.compareSync(password, user.password);
+            if (!isPasswordCorrect) {
+                // Password incorrect
+                return res.status(401).send({ success: false, message: "Incorrect password." });
+            }
+
+            // Successful login
+            return res.status(200).send({ 
+                success: true, 
+                access: auth.createAccessToken(user),
+                message: "Log in successful." 
+            });
+        })
+        .catch(error => errorHandler(error, req, res));
 };
 
 module.exports.getProfile = (req, res) => {
