@@ -8,7 +8,7 @@ module.exports.addWorkout = (req, res) => {
         duration : req.body.duration,
     });
 
-    Workout.findOne({ name: req.body.name })
+    Workout.findOne({ name: req.body.name, userId: req.user.id })
     .then(existingWorkout => {
         if(existingWorkout){
             return res.status(409).send({ message: 'Workout already exists.'});
