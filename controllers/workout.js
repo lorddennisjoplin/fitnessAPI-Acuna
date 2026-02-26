@@ -52,6 +52,7 @@ module.exports.updateWorkout = (req, res) => {
     const updatedWorkout = {
         name: req.body.name,
         duration: req.body.duration
+        status: req.body.status
     };
 
     return Workout.findOneAndUpdate(
