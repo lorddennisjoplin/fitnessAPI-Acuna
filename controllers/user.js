@@ -4,47 +4,48 @@ const auth = require('../auth.js');
 
 const { errorHandler } = require('../auth');
 
-module.exports.registerUser = (req, res) => {
-    // Validate email
-    if (!req.body.email.includes("@")) {
-        return res.status(400).json({
-            success: false,
-            message: "Invalid email format"
-        });
-    }
-
-    // Validate password length
-    if (req.body.password.length < 8) {
-        return res.status(400).json({
-            success: false,
-            message: "Password must be at least 8 characters"
-        });
-    }
-
-    // Create new user
-    let newUser = new User({
-        email: req.body.email,
-        password: bcrypt.hashSync(req.body.password, 10)
-    });
-
-    newUser.save()
-        .then(result => {
-            return res.status(201).json({
-                message: "Registered successfully",
+module.exports.registerUser = async (req, res) => {
+    try {
+        // Validate email
+        if (!req.body.email.includes("@")) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid email format"
             });
-        })
-        .catch(error => {
-            // Handle duplicate email error
-            if (error.code === 11000 && error.keyValue?.email) {
-                return res.status(409).json({
-                    success: false,
-                    message: "Email already exists"
-                });
-            }
+        }
 
-            // Fallback for other errors
-            return errorHandler(error, req, res);
+        // Validate password length
+        if (req.body.password.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 8 characters"
+            });
+        }
+
+        // Check if email already exists
+        const existingUser = await User.findOne({ email: req.body.email });
+        if (existingUser) {
+            return res.status(409).json({
+                success: false,
+                message: "Email already exists"
+            });
+        }
+
+        // Create new user
+        const newUser = new User({
+            email: req.body.email,
+            password: bcrypt.hashSync(req.body.password, 10)
         });
+
+        const savedUser = await newUser.save();
+        return res.status(201).json({
+            message: "Registered successfully",
+            userId: savedUser._id
+        });
+
+    } catch (error) {
+        return errorHandler(error, req, res);
+    }
 };
 
 module.exports.loginUser = (req, res) => {
